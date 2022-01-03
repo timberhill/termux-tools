@@ -1,17 +1,43 @@
 #!/usr/bin/bash
 
-echo "...Setting up git"
-pkg install openssh git
+KEYGEN_METHOD=ed25519
 
-ssh-keygen -t ed25519 -C "m.lisogorskyi@gmail.com"
-echo
+# parse the arguments
+while [ $# -gt 0 ]
+do
+	KEY=$1
+	case "$KEY" in
+		-e|--email)
+			email="$2"
+			shift
+			shift
+			;;
+		-n|--name)
+			name="$2"
+			shift
+			shift
+			;;
+		*)
+			echo "Unknown flag $KEY" >&2
+			exit 1
+			;;
+	esac
+done
+
+
+echo "...Installing git"
+pkg install --yes openssh git
+
+echo "...Generating ssh key"
+ssh-keygen -t $KEYGEN_METHOD -C "$email" -f $HOME/.ssh/id_$KEYGEN_METHOD -N ""
+
 echo "...Add this key to github account and continue"   
 echo "..."
-cat .ssh/id_ed25519.pub
+cat $HOME/.ssh/id_$KEYGEN_METHOD.pub
 echo "..."
 
-git config --global user.email "m.lisogorskyi@gmail.com"
-git config --global user.name "Maksym Lisogorskyi"
+git config --global user.email "$email"
+git config --global user.name "$name"
 
 echo "...done"
 
